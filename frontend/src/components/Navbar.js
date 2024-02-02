@@ -1,24 +1,17 @@
-import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { getCookie, removeCookie } from "../helpers/Cookie";
+import React, {  useState } from "react";
+import { Link, useNavigate } from "react-router-dom"; 
 import { CloseIcon, ProfileIcon } from "../Icons/Icons";
+import { useDispatch, useSelector } from "react-redux";
+import { updateUser } from "../redux/actions/UserAction";
 
 const Navbar = ({ socket }) => {
   const navigate = useNavigate();
-  const [userData, setUserData] = useState(null);
-  const userCookie = getCookie("userData");
+  const dispatch = useDispatch();
+  const userDataRedux = useSelector((state) => state.UserReducer.userData);
   const [isProfileOpen, setProfileOpen] = useState(false);
 
-  useEffect(() => {
-    if (userCookie !== undefined) {
-      setUserData(JSON.parse(userCookie));
-    } else {
-      setUserData(null);
-    } 
-  }, [userCookie]);
-
   const logoutUser = async () => {
-    const sendBody = { email: userData.email };
+    const sendBody = { email: userDataRedux.email };
     const headers = { "content-type": "application/json" };
     try {
       const res = await fetch("http://localhost:3001/api/user/logout", {
@@ -28,16 +21,17 @@ const Navbar = ({ socket }) => {
       });
       const result = await res.json();
       if (res.ok) { 
-        removeCookie("userData");
+        localStorage.removeItem("userData")
+        dispatch(updateUser(null));
         navigate("/login");
-        setProfileOpen(false)
+        setProfileOpen(false);
         socket.emit("logout_user_global", result.user);
-      } 
-    } catch (error) { 
-      console.log(error)
+      }
+    } catch (error) {
+      console.log(error);
     }
   };
-  
+ 
   return (
     <nav className="bg-gray-800 w-full p-4">
       <div className="container mx-auto flex justify-between items-center">
@@ -45,14 +39,14 @@ const Navbar = ({ socket }) => {
           Socket App
         </Link>
         <div className="space-x-4 flex  items-center">
-          <Link 
+          <Link
             to="/"
             className="text-white text-sm sm:text-base hover:text-gray-300 transition duration-300"
           >
             Home
           </Link>
           <div className="space-x-4 inline-block ">
-            {userData !== null && userData.online ? (
+            {userDataRedux !== null && userDataRedux.online ? (
               <div className="flex gap-4 items-center">
                 <button
                   onClick={logoutUser}
@@ -70,7 +64,7 @@ const Navbar = ({ socket }) => {
                   <div className="absolute right-2 top-14  bg-white p-4 rounded-md shadow-md">
                     <div className="flex justify-between items-center mb-2">
                       <p className="text-gray-800 text-sm sm:text-base font-semibold">
-                        {userData.name}
+                        {userDataRedux.name}
                       </p>
                       <button
                         onClick={() => setProfileOpen(false)}
@@ -79,8 +73,8 @@ const Navbar = ({ socket }) => {
                         <CloseIcon />
                       </button>
                     </div>
-                    <p className="text-gray-600 mb-2">{userData.email}</p>
-                    <p className="text-gray-600">{userData.phoneNumber}</p>
+                    <p className="text-gray-600 mb-2">{userDataRedux.email}</p>
+                    <p className="text-gray-600">{userDataRedux.phoneNumber}</p>
                     <button
                       onClick={logoutUser}
                       className="text-red-500 text-sm sm:text-base hover:text-red-700 mt-2 cursor-pointer"

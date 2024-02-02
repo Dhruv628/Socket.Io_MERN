@@ -1,8 +1,10 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { setCookie } from "../helpers/Cookie";
+import { Link, useNavigate } from "react-router-dom"; 
+import { useDispatch } from "react-redux";
+import { updateUser } from "../redux/actions/UserAction";
 
 const Login = ({ socket }) => {
+  const dispatch=useDispatch();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [alertText, setAlertText] = useState(null);
@@ -25,9 +27,10 @@ const Login = ({ socket }) => {
         body: JSON.stringify(sendBody),
       });
       const result = await res.json();
-      if (res.ok) { 
-        setCookie("userData",JSON.stringify(result.user));
+      if (res.ok) {   
+        localStorage.setItem("userData",JSON.stringify(result.user));
         socket.emit("user_login_global", result.user);
+        dispatch(updateUser(result.user));
         navigate("/"); 
       } else {
         setAlertText("Invalid email");

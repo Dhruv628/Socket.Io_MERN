@@ -1,17 +1,8 @@
-import React, { useEffect, useState } from "react";
-import { getCookie } from "../helpers/Cookie";
+import React  from "react"; 
+import { useSelector } from "react-redux";
 
-const Home = ({ users }) => {
-  const [userData, setUserData] = useState(null);
-  const userCookie = getCookie("userData");
-
-  useEffect(() => {
-    if (userCookie !== undefined) {
-      setUserData(JSON.parse(userCookie));
-    } else {
-      setUserData(null);
-    }
-  }, [userCookie]);
+const Home = ({ users }) => { 
+  const userData = useSelector((state) => state.UserReducer.userData);
 
   // Move the user with userData._id to the top of the list
   const sortedUsers = [...users].sort((a, b) => {

@@ -4,41 +4,34 @@ import Signup from "./components/Signup";
 import Login from "./components/Login";
 import Home from "./components/Home";
 import Navbar from "./components/Navbar";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 const socket = io.connect("http://localhost:3001");
 
 const App = () => {
   const [users, setUsers] = useState([]);
+  const userData = useSelector((state) => state.UserReducer.userData); 
+ 
+  const handleAddedUser = useCallback((data) => {
+    setUsers((prev) => [...prev, data]);
+  }, []);
 
-  const handleAddedUser = useCallback(
-    (data) => {
-      setUsers((prev) => [...prev, data]);
-    },
-    []
-  );
+  const handleLoggedInUserGlobal = useCallback((data) => {
+    setUsers((prevUsers) =>
+      prevUsers.map((user) =>
+        user._id === data._id ? { ...user, online: true } : user
+      )
+    );
+  }, []);
 
-  const handleLoggedInUserGlobal = useCallback(
-    (data) => {
-      setUsers((prevUsers) =>
-        prevUsers.map((user) =>
-          user._id === data._id ? { ...user, online: true } : user
-        )
-      );
-    },
-    []
-  );
-
-  const handleLoggedOutUserGlobal = useCallback(
-    ({ _id: userId }) => {
-      setUsers((prevUsers) =>
-        prevUsers.map((user) =>
-          user._id === userId ? { ...user, online: false } : user
-        )
-      );
-    },
-    []
-  );
+  const handleLoggedOutUserGlobal = useCallback(({ _id: userId }) => {
+    setUsers((prevUsers) =>
+      prevUsers.map((user) =>
+        user._id === userId ? { ...user, online: false } : user
+      )
+    );
+  }, []);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -47,14 +40,14 @@ const App = () => {
           method: "GET",
         });
         const result = await res.json();
-        setUsers(result.users); 
+        setUsers(result.users);
       } catch (error) {
         console.log(error);
       }
     };
 
-    fetchUsers();  
-    
+    fetchUsers();
+
     return () => {
       socket.off("added_user", handleAddedUser);
       socket.off("user_logged_global", handleLoggedInUserGlobal);
@@ -88,7 +81,16 @@ const App = () => {
       <Navbar socket={socket} />
       <div className="flex justify-center items-center min-h-[90vh] bg-gray-100">
         <Routes>
-          <Route path="/" element={<Home users={users} />} />
+          <Route
+            path="/"
+            element={
+              userData !== null ? (
+                <Home users={users} />
+              ) : (
+                <Navigate to="/login" />
+              )
+            }
+          />
           <Route path="/login" element={<Login socket={socket} />} />
           <Route path="/signup" element={<Signup socket={socket} />} />
         </Routes>
