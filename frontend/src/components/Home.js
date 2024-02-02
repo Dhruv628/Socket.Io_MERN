@@ -1,11 +1,22 @@
-import React  from "react"; 
+import React from "react";
 import { useSelector } from "react-redux";
 
-const Home = ({ users }) => { 
+const Home = ({ users }) => {
   const userData = useSelector((state) => state.UserReducer.userData);
 
-  // Move the user with userData._id to the top of the list
-  const sortedUsers = [...users].sort((a, b) => {
+  const updatedUsers =
+    userData !== null
+      ? users.map((e, i) => {
+          if (e._id === userData._id) {
+            return { ...e, online: true };
+          } else {
+            return e;
+          }
+        })
+      : users;
+  
+    // Move the user with userData._id to the top of the list
+    const sortedUsers = [...updatedUsers].sort((a, b) => {
     const isAOnline = a.online ? 1 : 0;
     const isBOnline = b.online ? 1 : 0;
 
@@ -14,9 +25,7 @@ const Home = ({ users }) => {
 
     // Sort by online status, then by name
     return isBOnline - isAOnline || a.name.localeCompare(b.name);
-  });  
-
-
+  });
 
   return (
     <div className="w-full py-10 flex justify-center">
@@ -25,8 +34,8 @@ const Home = ({ users }) => {
           <h2 className="text-2xl font-semibold">Users</h2>
         </div>
         <ul className="divide-y divide-gray-200">
-          {sortedUsers &&
-            sortedUsers.length>0?sortedUsers.map((user) => (
+          {sortedUsers && sortedUsers.length > 0 ? (
+            sortedUsers.map((user) => (
               <li key={user._id}>
                 <div className="p-4 flex items-center justify-between">
                   <div className="flex items-center">
@@ -38,7 +47,9 @@ const Home = ({ users }) => {
                       />
                     </div>
                     <div className="ml-3">
-                      {userData !== null && userData.online && userData._id === user._id ? (
+                      {userData !== null &&
+                      userData.online &&
+                      userData._id === user._id ? (
                         <p className="text-lg font-bold text-gray-900">
                           {user.name} - you
                         </p>
@@ -65,9 +76,10 @@ const Home = ({ users }) => {
                   </span>
                 </div>
               </li>
-            )):(
-              <div className="p-4">No users found</div>
-            )}
+            ))
+          ) : (
+            <div className="p-4">No users found</div>
+          )}
         </ul>
       </div>
     </div>
