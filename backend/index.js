@@ -18,12 +18,12 @@ io.on("connection", (socket) => {
   });
 
   socket.on("user_login_global",async (data) => {  
-    io.emit("user_logged_global",data)
+    socket.broadcast.emit("user_logged_global",data)
   });
  
 
   socket.on("logout_user_global",async(data)=>{  
-    io.emit("user_logged_out_global",data)
+    socket.broadcast.emit("user_logged_out_global",data)
   })
 
   socket.on("disconnect", (data) => { 
